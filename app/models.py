@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Boolean
+from app.database import Base
 
-Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
@@ -9,4 +8,14 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
+    full_name = Column(String, unique=True, index=True)
+    disabled = Column(Boolean, default=None)
     hashed_password = Column(String)
+
+
+class Job(Base):
+    __tablename__ = "jobs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    description = Column(String)
