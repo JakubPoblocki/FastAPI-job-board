@@ -1,21 +1,30 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models import User, Job
-from app.schemas import JobCreate, UserCreate
+from app.schemas import JobCreateSchema, UserCreateSchema
 from app.utils import hash_password, verify_password
 
 
 # Users
-def create_user(db: Session, user: UserCreate):
+def create_user(db: Session, user: UserCreateSchema) -> User:
+    existing_user = db.query(User).filter(User.username == user.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
     db_user = User(
         username=user.username,
-        email=user.email,
+        email=str(user.email),
         full_name=user.full_name,
         hashed_password=hash_password(user.password)
     )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    except Exception:
+        db.rollback()
+        raise
     return db_user
 
 
@@ -35,7 +44,7 @@ def get_users(db: Session):
 
 
 # Jobs
-def create_job(db: Session, job: JobCreate):
+def create_job(db: Session, job: JobCreateSchema):
     db_job = Job(title=job.title, description=job.description)
     db.add(db_job)
     db.commit()
